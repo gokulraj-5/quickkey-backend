@@ -1,26 +1,19 @@
-const axios = require('axios');
-require('dotenv').config();
+// gemini.js
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+require("dotenv").config();
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
-async function getAnswer(question) {
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
-  
-  const body = {
-    contents: [
-      {
-        parts: [{ text: `Read this MCQ and tell the correct option with a short explanation:\n\n${question}` }]
-      }
-    ]
-  };
-
+async function getGeminiAnswer(question) {
   try {
-    const res = await axios.post(endpoint, body);
-    return res.data.candidates[0].content.parts[0].text;
+    const result = await model.generateContent(question);
+    const response = await result.response;
+    return response.text();
   } catch (err) {
-    console.error(err.message);
-    return "Something went wrong.";
+    console.error("Gemini Error:", err);
+    return "Something went wrong. Try again later.";
   }
 }
 
-module.exports = { getAnswer };
+module.exports = getGeminiAnswer;
